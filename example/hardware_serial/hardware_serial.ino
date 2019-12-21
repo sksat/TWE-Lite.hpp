@@ -1,5 +1,5 @@
 #define TWE_LITE_USE_HARDWARE_SERIAL
-#include "../TWE-Lite.hpp"
+#include "../../TWE-Lite.hpp"
 
 TWE_Lite twe(0, 1, 38400);
 

@@ -1,5 +1,5 @@
 #include <SoftwareSerial.h>
-#include "../TWE-Lite.hpp"
+#include "../../TWE-Lite.hpp"
 
 TWE_Lite twe(4, 3, 38400);
 

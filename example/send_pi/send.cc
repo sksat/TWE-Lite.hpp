@@ -1,7 +1,7 @@
 #include <iostream>
 
 #define RASPBERRY_PI
-#include "../TWE-Lite.hpp"
+#include "../../TWE-Lite.hpp"
 
 TWE_Lite twelite("/dev/ttyUSB0", 115200);
 
