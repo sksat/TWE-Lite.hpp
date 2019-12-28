@@ -42,13 +42,15 @@ public:
 	// コンストラクタ
 #ifdef ARDUINO
 	explicit TWE_Lite(const uint8_t rx, const uint8_t tx, const long int brate=default_brate) : rx(rx), tx(tx), brate(brate) {}
+#elif defined(MBED)
+	explicit TWE_Lite(const PinName tx, const PinName rx, const long int brate=default_brate) : tx(tx), rx(rx), brate(brate) {}
 #else
 	explicit TWE_Lite(const std::string &devfile, const long int &brate) : devfile(devfile), brate(brate) {}
 #endif
 
 	// デストラクタ
 	~TWE_Lite(){
-		#ifdef ARDUINO
+		#if defined(ARDUINO) || defined(MBED)
 			// 特にやることなし(そもそもデストラクタが呼ばれるべきではない)
 		#elif defined(RASPBERRY_PI)
 			if(fd != 0){
@@ -63,6 +65,8 @@ public:
 	// 定数
 #ifdef ARDUINO
 	const uint8_t rx, tx;
+#elif defined(MBED)
+	const PinName tx, rx;
 #else
 	const std::string devfile;
 #endif
@@ -88,6 +92,9 @@ public:
 				serial = new SoftwareSerial(rx, tx);
 			#endif
 			serial->begin(brate);
+		#elif defined(MBED)
+			serial = new Serial(tx, rx);
+			serial->baud(brate);
 		#else
 			fd = open(devfile.c_str(), O_RDWR | O_NOCTTY | O_SYNC /*O_NDELAY*/ /*| O_NONBLOCK*/);
 			termios setting;
@@ -547,6 +554,8 @@ private:
 	#else
 	SoftwareSerial *serial = nullptr;
 	#endif
+#elif defined(MBED)
+	Serial *serial = nullptr;
 //#elif defined(RASPBERRY_PI)
 #else
 	int fd = 0;
