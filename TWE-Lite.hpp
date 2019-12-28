@@ -6,6 +6,10 @@
 	#ifndef TWE_LITE_USE_HARDWARE_SERIAL
 		#include <SoftwareSerial.h>
 	#endif
+#elif defined(MBED_VERSION)
+	// Mbed OS
+	#define MBED
+	#include "mbed.h"
 #else
 	// others
 	#include <cstdio>
