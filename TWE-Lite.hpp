@@ -121,6 +121,8 @@ public:
 	inline void swrite8(const uint8_t &val) const {
 #ifdef ARDUINO
 		serial->write(val);
+#elif defined(MBED)
+		serial->putc(val);
 #elif defined(RASPBERRY_PI)
 		serialPutchar(fd, val);
 		//std::cout << std::hex << (int)val;
@@ -156,6 +158,8 @@ public:
 //		Serial.print(b, HEX);
 //		Serial.write(" ");
 		return b;
+#elif defined(MBED)
+		return serial->getc();
 #elif defined(RASPBERRY_PI)
 		return serialGetchar(fd);
 #else
@@ -173,6 +177,8 @@ public:
 	inline int savail() const {
 #ifdef ARDUINO
 		return serial->available();
+#elif defined(MBED)
+		return serial->readable();
 #elif defined(RASPBERRY_PI)
 		return serialDataAvail(fd);
 #else
