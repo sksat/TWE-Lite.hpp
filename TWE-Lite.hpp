@@ -300,9 +300,15 @@ public:
 	// 受信成功時trueを返す
 	// 受信失敗, タイムアウト時falseを返す
 	inline auto try_recv(const size_t &timeout) -> bool {
+		#ifdef MBED
+			Timer t;
+			t.start();
+		#endif
 		const auto start =
 			#ifdef NO_MILLIS
 				std::chrono::system_clock::now();
+			#elif defined(MBED)
+				0;
 			#else
 				millis();
 			#endif
@@ -317,6 +323,8 @@ public:
 				const auto end = std::chrono::system_clock::now();
 				const double e = std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count();
 				const size_t elapsed = static_cast<size_t>(e);
+			#elif defined(MBED)
+				const size_t elapsed = t.read_ms();
 			#else
 				const auto elapsed = millis() - start;
 			#endif
