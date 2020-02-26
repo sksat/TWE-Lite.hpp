@@ -313,12 +313,6 @@ public:
 				millis();
 			#endif
 		while(true){
-			//if(savail() == 0) break;
-			const uint8_t b = sread8();
-			if(sread_error) break;;
-			if(parser.parse8(b))
-				return true;
-
 			#ifdef NO_MILLIS
 				const auto end = std::chrono::system_clock::now();
 				const double e = std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count();
@@ -330,6 +324,13 @@ public:
 			#endif
 			if(elapsed >= timeout)
 				break;
+
+			if(savail() == 0) continue;
+
+			const uint8_t b = sread8();
+			if(sread_error) break;;
+			if(parser.parse8(b))
+				return true;
 		}
 		return false;
 	}
