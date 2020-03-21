@@ -32,11 +32,19 @@
 	#endif
 #endif
 
+#ifndef TWE_LITE_DEFAULT_BUF_SIZE
+	#ifdef ARDUINO
+		#define TWE_LITE_DEFAULT_BUF_SIZE 30
+	#else
+		#define TWE_LITE_DEFAULT_BUF_SIZE 100
+	#endif
+#endif
+
 class TWE_Lite {
 public:
 	// コンパイル時定数
 	constexpr static long int default_brate		= 115200;
-	constexpr static uint8_t  default_buf_size	= 30;
+	constexpr static uint8_t  default_buf_size	= TWE_LITE_DEFAULT_BUF_SIZE;
 	constexpr static uint16_t MSB				= 0x8000;
 
 	// コンストラクタ
