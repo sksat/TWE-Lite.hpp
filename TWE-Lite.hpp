@@ -267,7 +267,7 @@ public:
 	}
 
 	template<typename T>
-	const size_t recv(T &data, const size_t timeout=100){
+	size_t recv(T &data, const size_t timeout=100){
 		parser.set_buf(reinterpret_cast<uint8_t*>(&data), sizeof(T));
 		if(try_recv(timeout))
 			return parser.get_length();
@@ -275,7 +275,7 @@ public:
 	}
 
 	// 受信する(成功時受信バイト数を返す)
-	const size_t recv(const size_t timeout=100){
+	size_t recv(const size_t timeout=100){
 		#ifdef ARDUINO
 			#ifndef TWE_LITE_USE_HARDWARE_SERIAL
 			serial->listen();
@@ -289,19 +289,19 @@ public:
 		return 0;
 	}
 
-	inline const bool is_simple()  const { return parser.is_simple();}
-	inline const bool is_extended()const { return parser.is_extended();}
-	inline const bool is_response()const { return parser.is_response();}
+	inline bool is_simple()  const { return parser.is_simple();}
+	inline bool is_extended()const { return parser.is_extended();}
+	inline bool is_response()const { return parser.is_response();}
 
-	inline const uint8_t from_id()    const { return parser.get_from_id(); }
-	inline const uint8_t cmd_type()   const { return parser.get_cmd_type();}
-	inline const uint8_t response_id()const { return parser.get_response_id();}
-	inline const uint8_t LQI()        const { return parser.get_LQI(); }
+	inline uint8_t from_id()    const { return parser.get_from_id(); }
+	inline uint8_t cmd_type()   const { return parser.get_cmd_type();}
+	inline uint8_t response_id()const { return parser.get_response_id();}
+	inline uint8_t LQI()        const { return parser.get_LQI(); }
 
-	inline const uint16_t get_length() const { return parser.get_length(); }
+	inline uint16_t get_length() const { return parser.get_length(); }
 
-	inline const uint32_t from_ext_addr() const { return parser.get_from_ext_addr();}
-	inline const uint32_t my_ext_addr()   const { return parser.get_my_ext_addr();}
+	inline uint32_t from_ext_addr() const { return parser.get_from_ext_addr();}
+	inline uint32_t my_ext_addr()   const { return parser.get_my_ext_addr();}
 
 	inline void clear_buf() { parser.clear_buf(); }
 
@@ -385,7 +385,7 @@ public:
 		inline auto is_extended() const -> bool { return !flag_simple; }
 		inline auto is_response() const -> bool { return flag_response; }
 
-		inline auto get_cmd_length() const -> const uint16_t { return cmd_length; }
+		inline auto get_cmd_length() const -> uint16_t { return cmd_length; }
 		inline auto get_length() const -> uint16_t { return payload_length; }
 		inline auto get_from_id() const -> uint8_t { return from_id; }
 		inline auto get_cmd_type() const -> uint8_t{ return cmd_type;}
