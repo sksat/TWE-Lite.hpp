@@ -6,6 +6,10 @@
 	#ifndef TWE_LITE_USE_HARDWARE_SERIAL
 		#include <SoftwareSerial.h>
 	#endif
+#elif defined(MBED_VERSION)
+	// Mbed OS
+	#define MBED
+	#include "mbed.h"
 #else
 	// others
 	#include <cstdio>
@@ -28,23 +32,33 @@
 	#endif
 #endif
 
+#ifndef TWE_LITE_DEFAULT_BUF_SIZE
+	#ifdef ARDUINO
+		#define TWE_LITE_DEFAULT_BUF_SIZE 30
+	#else
+		#define TWE_LITE_DEFAULT_BUF_SIZE 100
+	#endif
+#endif
+
 class TWE_Lite {
 public:
 	// コンパイル時定数
 	constexpr static long int default_brate		= 115200;
-	constexpr static uint8_t  default_buf_size	= 30;
+	constexpr static uint8_t  default_buf_size	= TWE_LITE_DEFAULT_BUF_SIZE;
 	constexpr static uint16_t MSB				= 0x8000;
 
 	// コンストラクタ
 #ifdef ARDUINO
 	explicit TWE_Lite(const uint8_t rx, const uint8_t tx, const long int brate=default_brate) : rx(rx), tx(tx), brate(brate) {}
+#elif defined(MBED)
+	explicit TWE_Lite(const PinName tx, const PinName rx, const long int brate=default_brate) : tx(tx), rx(rx), brate(brate) {}
 #else
 	explicit TWE_Lite(const std::string &devfile, const long int &brate) : devfile(devfile), brate(brate) {}
 #endif
 
 	// デストラクタ
 	~TWE_Lite(){
-		#ifdef ARDUINO
+		#if defined(ARDUINO) || defined(MBED)
 			// 特にやることなし(そもそもデストラクタが呼ばれるべきではない)
 		#elif defined(RASPBERRY_PI)
 			if(fd != 0){
@@ -59,6 +73,8 @@ public:
 	// 定数
 #ifdef ARDUINO
 	const uint8_t rx, tx;
+#elif defined(MBED)
+	const PinName tx, rx;
 #else
 	const std::string devfile;
 #endif
@@ -84,6 +100,9 @@ public:
 				serial = new SoftwareSerial(rx, tx);
 			#endif
 			serial->begin(brate);
+		#elif defined(MBED)
+			serial = new Serial(tx, rx);
+			serial->baud(brate);
 		#else
 			fd = open(devfile.c_str(), O_RDWR | O_NOCTTY | O_SYNC /*O_NDELAY*/ /*| O_NONBLOCK*/);
 			termios setting;
@@ -110,6 +129,8 @@ public:
 	inline void swrite8(const uint8_t &val) const {
 #ifdef ARDUINO
 		serial->write(val);
+#elif defined(MBED)
+		serial->putc(val);
 #elif defined(RASPBERRY_PI)
 		serialPutchar(fd, val);
 		//std::cout << std::hex << (int)val;
@@ -145,6 +166,8 @@ public:
 //		Serial.print(b, HEX);
 //		Serial.write(" ");
 		return b;
+#elif defined(MBED)
+		return serial->getc();
 #elif defined(RASPBERRY_PI)
 		return serialGetchar(fd);
 #else
@@ -162,6 +185,8 @@ public:
 	inline int savail() const {
 #ifdef ARDUINO
 		return serial->available();
+#elif defined(MBED)
+		return serial->readable();
 #elif defined(RASPBERRY_PI)
 		return serialDataAvail(fd);
 #else
@@ -283,28 +308,37 @@ public:
 	// 受信成功時trueを返す
 	// 受信失敗, タイムアウト時falseを返す
 	inline auto try_recv(const size_t &timeout) -> bool {
+		#ifdef MBED
+			Timer t;
+			t.start();
+		#endif
 		const auto start =
 			#ifdef NO_MILLIS
 				std::chrono::system_clock::now();
+			#elif defined(MBED)
+				0;
 			#else
 				millis();
 			#endif
 		while(true){
-			//if(savail() == 0) break;
-			const uint8_t b = sread8();
-			if(sread_error) break;;
-			if(parser.parse8(b))
-				return true;
-
 			#ifdef NO_MILLIS
 				const auto end = std::chrono::system_clock::now();
 				const double e = std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count();
 				const size_t elapsed = static_cast<size_t>(e);
+			#elif defined(MBED)
+				const size_t elapsed = t.read_ms();
 			#else
 				const auto elapsed = millis() - start;
 			#endif
 			if(elapsed >= timeout)
 				break;
+
+			if(savail() == 0) continue;
+
+			const uint8_t b = sread8();
+			if(sread_error) break;;
+			if(parser.parse8(b))
+				return true;
 		}
 		return false;
 	}
@@ -543,6 +577,8 @@ private:
 	#else
 	SoftwareSerial *serial = nullptr;
 	#endif
+#elif defined(MBED)
+	Serial *serial = nullptr;
 //#elif defined(RASPBERRY_PI)
 #else
 	int fd = 0;
